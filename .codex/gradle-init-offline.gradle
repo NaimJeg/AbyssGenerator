@@ -1,0 +1,9 @@
+// Temporary offline workaround: exposes the foojay toolchain plugin from a local Maven
+// repository assembled from Gradle's own artifact cache. Used only for local builds in this
+// sandbox; not part of the project build.
+beforeSettings { settings ->
+    settings.pluginManagement.repositories.maven { repo ->
+        repo.name = 'local-abyss-cache'
+        repo.url = 'file:///C:/Users/RNaim/AppData/Local/Temp/abyss-local-repo'
+    }
+}
