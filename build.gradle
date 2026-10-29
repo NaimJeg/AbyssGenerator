@@ -27,14 +27,30 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Add here additional repositories if required by some of the dependencies below.
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url "https://maven.sighs.cc/repository/maven-public/"
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 25 to end users in 26.2, so mods should target Java 25.
+// Minecraft 26.1.2 uses Java 25.
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
@@ -49,6 +65,7 @@ neoForge {
     runs {
         client {
             client()
+            systemProperty 'abyssgenerator.wideytest', 'true'
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
@@ -57,8 +74,43 @@ neoForge {
             server()
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-            // TEMPORARY ARCHITECTURE SPIKE — REMOVE AFTER ARCHITECTURE VALIDATION
-            systemProperty 'abyssgenerator.verticalNoiseProbe', 'true'
+            // Dev-only Wide-Y regression harness (WideYBaselineTest)
+            systemProperty 'abyssgenerator.wideytest', 'true'
+        }
+
+        acceptanceServer {
+            server()
+            gameDirectory = project.file('build/acceptance/server')
+            programArgument '--nogui'
+            systemProperty 'abyssgenerator.wideytest', 'true'
+            systemProperty 'autojs.port', '25586'
+        }
+
+        acceptanceClient {
+            client()
+            programArguments.addAll '--username', providers.gradleProperty('acceptanceUser').getOrElse('Dev')
+            gameDirectory = project.file('build/acceptance/client')
+            systemProperty 'abyssgenerator.wideytest', 'true'
+            systemProperty 'autojs.port', '25587'
+        }
+
+        bridgeServer {
+            server()
+            gameDirectory = project.file('build/acceptance/bridge-server')
+            programArgument '--nogui'
+            systemProperty 'abyssgenerator.wideytest', 'true'
+            systemProperty 'abyssgenerator.sparseSpike', 'true'
+            systemProperty 'abyssgenerator.generationAudit', 'true'
+            systemProperty 'autojs.port', '25588'
+        }
+
+        fractalServer {
+            server()
+            gameDirectory = project.file('build/acceptance/fractal-server')
+            programArgument '--nogui'
+            jvmArgument '-Xmx4G'
+            systemProperty 'abyssgenerator.wideytest', 'true'
+            systemProperty 'autojs.port', '25589'
         }
 
         // This run config launches GameTestServer and runs all registered gametests, then exits.
@@ -90,7 +142,7 @@ neoForge {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
+            logLevel = org.slf4j.event.Level.INFO
         }
     }
 
@@ -100,6 +152,9 @@ neoForge {
         // multi mod projects should define one per mod
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            // Dev-only: bind the test source set so the WideYBaselineTest
+            // command harness is on the runtime classpath of dev runs.
+            sourceSet(sourceSets.test)
         }
     }
 }
@@ -113,30 +168,15 @@ configurations {
 }
 
 dependencies {
-    testImplementation "org.junit.jupiter:junit-jupiter:5.12.2"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.12.2"
-
-    // Example optional mod dependency with JEI
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
-
-    // Example mod dependency using a mod jar from ./libs with a flat dir repository
-    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
-    // The group id is ignored when searching -- in this case, it is "blank"
-    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
-
-    // Example mod dependency using a file as dependency
-    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
-
-    // Example project dependency using a sister or child project:
-    // implementation project(":myproject")
-
-    // For more info:
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    localRuntime 'com.sighs.autojs:AutoJS-neoforge-26.1:1.0.0'
+    localRuntime "curse.maven:rhino-416294:8463898"
+    // AutoJS supports standalone Rhino. The optional KubeJS build currently fails
+    // dedicated-server startup with a missing Better Advanced Tooltips class.
+    if (providers.gradleProperty('withKubeJS').getOrElse('false').toBoolean()) {
+        localRuntime "curse.maven:kubejs-238086:9191319"
+    }
 }
 
 // The ModDev plugin exposes the game classpath to the main source set through its own
@@ -149,6 +189,7 @@ configurations {
 
 tasks.named('test', Test) {
     useJUnitPlatform()
+    failOnNoDiscoveredTests = true
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

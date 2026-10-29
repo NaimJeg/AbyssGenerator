@@ -2,6 +2,12 @@
   "required": true,
   "package": "cc.sighs.abyssgenerator.mixin",
   "mixins": [
+    "ChunkAccessMixin",
+    "ChunkStepMixin",
+    "ServerLevelMixin",
+    "LevelChunkMixin",
+    "SerializableChunkDataMixin",
+    "FractalPlayerSpawnMixin"
   ],
   "client": [],
   "injectors": {

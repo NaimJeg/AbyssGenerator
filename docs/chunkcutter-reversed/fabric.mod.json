@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"id": "chunkcutter",
+	"accessWidener": "chunkcutter.classtweaker",
+	"version": "26.2-fabric-0.6",
+	"name": "区块分割",
+	"description": "将原版世界最小组成单元从2D结构区块分割为3D结构子区块，并实现无限高度",
+	"authors": [
+		"疾风远行"
+	],
+	"contact": {
+		"homepage": "https://center.mcmod.cn/1108213"
+	},
+	"custom": {
+		"modmenu": {
+			"links": {
+				"bilibili": "https://b23.tv/H2dRI6C",
+				"Modrinth": "https://modrinth.com/user/jfyx2025"
+			}
+		}
+	},
+	"license": "MIT",
+	"icon": "assets/chunkcutter/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.jfyx2025.chunkcutter.ChunkCutterMod"
+		],
+		"client": [
+			"com.jfyx2025.chunkcutter.client.ChunkCutterClient"
+		]
+	},
+	"mixins": [
+		"chunkcutter.mixins.json",
+		{
+			"config": "chunkcutter.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

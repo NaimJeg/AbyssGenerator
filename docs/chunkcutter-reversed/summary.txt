@@ -1,0 +1,9 @@
+Summary for docs\chunkcutter-26.2-fabric-0.6.jar
+Decompiled with CFR 0.152
+
+
+com.jfyx2025.chunkcutter.cubic.terrain.ChunkGeneratorBackend
+----------------------------
+
+await(java.util.concurrent.CompletableFuture<T> )
+  Loose catch block

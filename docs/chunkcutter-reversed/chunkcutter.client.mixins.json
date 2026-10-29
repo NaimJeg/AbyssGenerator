@@ -1,0 +1,20 @@
+{
+	"required": true,
+	"package": "com.jfyx2025.chunkcutter.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"ClientChunkCacheMixin",
+		"ClientLevelMixin",
+		"ClientLevelSectionDirtyMixin",
+		"SectionCopyMixin",
+		"ClientChunkCacheStorageMixin",
+		"ClientPacketListenerMixin",
+		"RenderSectionRegionMixin",
+		"ViewAreaMixin",
+		"SectionRenderDispatcherMixin",
+		"SectionOcclusionGraphMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

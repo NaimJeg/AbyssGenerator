@@ -1,0 +1,6 @@
+{
+  "type": "abyssgenerator:abyss",
+  "generator": {
+    "type": "abyssgenerator:fractal"
+  }
+}
